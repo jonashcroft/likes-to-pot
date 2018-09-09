@@ -5,13 +5,14 @@
     function configSettings() {
 
         $config = [];
-        return $config;
-    }
 
+        return $config;
+
+    }
 
     $monzoUrl     = 'https://api.monzo.com';
     $redirectUri  = 'http://likestopot.test';
-    $state        = uniqid( strtotime('now') . '-' . rand(1,999999) , true);
+    $state        = uniqid( strtotime('now') . '-' . rand(1,999999) , true );
 
     $authorised   = false;
 
@@ -26,8 +27,8 @@
     $dbPass = 'root';
     $dbName = 'scotchbox';
 
-    $con = mysqli_connect($dbName, $dbUser, $dbPass, $dbName);
-    // Check connection
+    $con = mysqli_connect( $dbName, $dbUser, $dbPass, $dbName );
+
     if ( mysqli_connect_errno() ) {
         echo "Failed to connect to MySQL: " . mysqli_connect_error();
     }
@@ -47,7 +48,6 @@
             $accountId    = $row[6];
             $monzoPot     = $row[7];
 
-            // printf ("%s (%s) %s %s\n",$row[0],$row[1], $row[2], $row[3]);
         }
 
         mysqli_free_result($result);
@@ -72,10 +72,10 @@ function getTodaysLikes() {
     $data        = json_decode($json, true);
     $todaysLikes = 0;
 
-    foreach ($data['feed']['entry'] as $item) {
+    foreach ( $data['feed']['entry'] as $item ) {
 
         $likedTimestamp = strtotime( $item['gsx$_ciyn3']['$t'] );
-        $likedDate = date( 'Y-m-d', $likedTimestamp );
+        $likedDate      = date( 'Y-m-d', $likedTimestamp );
 
         if ( $likedDate == $today ) {
             $todaysLikes++;
@@ -83,6 +83,7 @@ function getTodaysLikes() {
     }
 
     return $todaysLikes;
+
 }
 
 
@@ -106,7 +107,7 @@ function refreshMonzo( $monzoUrl, $clientId, $clientSecret, $refreshToken ) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $server_output = curl_exec($ch);
-    $response = json_decode($server_output, true);
+    $response      = json_decode($server_output, true);
 
     debug($response);
 
@@ -122,15 +123,14 @@ function refreshMonzo( $monzoUrl, $clientId, $clientSecret, $refreshToken ) {
         $refreshToken = $response['refresh_token'];
         $accessToken  = $response['access_token'];
 
-        $sql = "UPDATE creds SET refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1";
+        $sql          = "UPDATE creds SET refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1";
 
-        // $sql = "INSERT INTO creds (userID, refreshToken, accessToken)
-        // -- VALUES ('$userId', '$refreshToken', '$accessToken')";
 
         if ( mysqli_query( $conn, $sql ) ) {
             echo "tokens refreshed successfully.";
 
             // GOTO DEPOSIT
+
 
         } else {
             echo "Error: " . $sql . "<br>" . mysqli_error($conn);
@@ -191,8 +191,7 @@ if ( !$authorised ) { ?>
                 $accessToken  = $response['access_token'];
                 $userId       = $response['user_id'];
 
-
-                $sql = "UPDATE creds SET userID='$userId', refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1";
+                $sql          = "UPDATE creds SET userID='$userId', refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1 ";
 
                 // $sql = "INSERT INTO creds (userID, refreshToken, accessToken)
                 // -- VALUES ('$userId', '$refreshToken', '$accessToken')";
@@ -241,7 +240,6 @@ if ( !$authorised ) { ?>
         $result     = curl_exec($ch);
         $httpcode   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-
         curl_close($ch);
 
         $accounts = json_decode($result, true);
@@ -255,17 +253,22 @@ if ( !$authorised ) { ?>
                 die("Connection failed: " . mysqli_connect_error());
             }
 
-            foreach ($accounts['accounts'] as $key => $account) {
+            foreach ( $accounts['accounts'] as $key => $account ) {
 
-                if ($account['type'] == 'uk_retail') {
+                if ( $account['type'] == 'uk_retail' ) {
+
                     $accountId = $account['id'];
 
                     $sql = "UPDATE creds SET accountId='$accountId' WHERE id=1";
 
                     if ( mysqli_query( $conn, $sql ) ) {
+
                         echo "account ID created successfully";
+
                     } else {
+
                         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+
                     }
 
                 }
@@ -317,28 +320,26 @@ if ( !$authorised ) { ?>
                 $ch = curl_init($url);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-                curl_setopt($ch, CURLOPT_POSTFIELDS,http_build_query($data));
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    $authorization,
-                        'Content-Type: application/x-www-form-urlencoded'
-                    ));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query( $data ) );
+                curl_setopt($ch, CURLOPT_HTTPHEADER,
+                        [
+                            $authorization, 'Content-Type: application/x-www-form-urlencoded'
+                        ]
+                    );
                 $depositResponse = curl_exec($ch);
                 $httpcode        = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-                $depositResult = json_decode($depositResponse, true);
+                $depositResult   = json_decode($depositResponse, true);
 
                 curl_close($ch);
 
-                if ($err) {
+                if ( $err ) {
 
                     debug("cURL Error #:" . $err);
 
-
                 } else {
 
-                    debug($httpcode);
-
-                    debug($depositResult);
+                    debug( $httpcode );
+                    debug( $depositResult );
 
                     switch ( $httpcode ) {
 
@@ -349,7 +350,7 @@ if ( !$authorised ) { ?>
 
                             break;
 
-                                  // Reauthorize
+                        // Reauthorize
                         case '400':
 
                             refreshMonzo( $monzoUrl, $clientId, $clientSecret, $refreshToken );
