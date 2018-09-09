@@ -13,13 +13,13 @@
     $redirectUri  = 'http://likestopot.test';
     $state        = uniqid( strtotime('now') . '-' . rand(1,999999) , true);
 
-    $monzoPot     = '*** POT ID ***';
-
     $authorised   = false;
 
     $refreshToken = '';
     $accessToken  = '';
     $userId       = '';
+    $monzoPot     = '';
+
 
     $dbHost = 'localhost';
     $dbUser = 'root';
@@ -45,6 +45,7 @@
             $refreshToken = $row[4];
             $accessToken  = $row[5];
             $accountId    = $row[6];
+            $monzoPot     = $row[7];
 
             // printf ("%s (%s) %s %s\n",$row[0],$row[1], $row[2], $row[3]);
         }
