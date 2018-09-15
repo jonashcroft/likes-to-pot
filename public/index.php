@@ -4,8 +4,15 @@
 
     function configSettings() {
 
-        $config = [];
+        $config = [
+            'monzoUrl'    => 'https://api.monzo.com',
+            'redirectUri' => 'http://likestopot.test',
 
+            'dbHost'      => 'localhost',
+            'dbUser'      => 'root',
+            'dbPass'      => 'root',
+            'dbPass'      => 'scotchbox',
+        ];
         return $config;
 
     }
@@ -61,33 +68,60 @@
 
     }
 
+
+
+function getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) {
+
+    $yesterdaysDate = date( 'Y-m-d' , strtotime('-1 days') );
+
+    $con            = mysqli_connect($dbName, $dbUser, $dbPass, $dbName);
+    $query          = "SELECT likeCount FROM transHistory WHERE depositDate = '$yesterdaysDate'";
+    $result         = mysqli_query($con, $query);
+
+    if ( mysqli_num_rows($result) > 0) {
+        while ( $row = mysqli_fetch_row( $result ) ) {
+            $yesterdaysLikes = $row[0];
+        }
+    }
+
+    mysqli_close($con);
+
+    return $yesterdaysLikes;
+}
+
+debug( getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) );
+
+
 /*-------------
 Get todays 'liked' tweets from a Google Sheet populatd via IFTTT
 --------------*/
 function getTodaysLikes() {
 
-    $today       = date('Y-m-d');
-    $url         = 'https://spreadsheets.google.com/feeds/list/1vqErLZzyKhRZiufJ-YSp-OwbgaOMZgPqHwBdnx24dTY/od6/public/values?alt=json';
-    $json        = file_get_contents($url);
-    $data        = json_decode($json, true);
-    $todaysLikes = 0;
+    $today         = date( 'Y-m-d' );
+
+    $url           = 'https://spreadsheets.google.com/feeds/list/1vqErLZzyKhRZiufJ-YSp-OwbgaOMZgPqHwBdnx24dTY/od6/public/values?alt=json';
+    $json          = file_get_contents($url);
+    $data          = json_decode($json, true);
+
+    $allTimeLikes  = 0;
+    $todaysLikes   = 0;
 
     foreach ( $data['feed']['entry'] as $item ) {
 
-        $likedTimestamp = strtotime( $item['gsx$_ciyn3']['$t'] );
-        $likedDate      = date( 'Y-m-d', $likedTimestamp );
+        // debug($item);
 
-        if ( $likedDate == $today ) {
-            $todaysLikes++;
-        }
+        $todaysLikes++;
     }
 
     return $todaysLikes;
 
 }
 
+getTodaysLikes();
 
 function refreshMonzo( $monzoUrl, $clientId, $clientSecret, $refreshToken ) {
+
+    debug( $refreshToken );
 
     $ch = curl_init();
     $authUrl = $monzoUrl . '/oauth2/token';
@@ -287,7 +321,7 @@ if ( !$authorised ) { ?>
 
         $con = mysqli_connect($dbName, $dbUser, $dbPass, $dbName);
 
-        $query = "SELECT * FROM transHistory WHERE depositdate = '$todaysDate'";
+        $query = "SELECT * FROM transHistory WHERE depositDate = '$todaysDate'";
         $result = mysqli_query($con, $query);
 
         if ( mysqli_num_rows($result) > 0) {
@@ -295,6 +329,13 @@ if ( !$authorised ) { ?>
             echo "already done today b";
 
             mysqli_close($con);
+
+
+            $tweetsLiked = getTodaysLikes();
+
+            debug($tweetsLiked);
+
+
 
         }
         else {
@@ -370,7 +411,7 @@ if ( !$authorised ) { ?>
 
                             $date = date('Y-m-d');
 
-                            $sql = "INSERT INTO transHistory (depositdate, likes, new_balance)
+                            $sql = "INSERT INTO transHistory (depositDate, likeCount, newBalance)
                             VALUES ('$date', '$tweetsLiked', '$newBalance')";
 
                             if ( mysqli_query( $conn, $sql ) ) {
