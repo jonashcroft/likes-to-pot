@@ -1,2 +1,4 @@
 .DS_STORE
 .vagrant
+
+public/logs/cron-log.txt

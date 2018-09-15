@@ -14,7 +14,9 @@ function depositMoney( $config ) {
 
     if ( mysqli_num_rows($result) > 0) {
 
-        echo "already done today b";
+        // echo "already done today b";
+
+        createLog('Already deposited for the current day.');
 
         mysqli_close($con);
 
@@ -25,7 +27,8 @@ function depositMoney( $config ) {
 
         mysqli_close($con);
 
-        echo 'no deposit on this date';
+        // echo 'no deposit on this date';
+        createLog('No deposit today, attempting to contact Monzo...');
 
         $tweetsLiked = 1;
         $tweetsLiked = getTodaysLikes( $config );
@@ -60,12 +63,14 @@ function depositMoney( $config ) {
 
             if ( $err ) {
 
-                debug("cURL Error #:" . $err);
+                // debug("cURL Error #:" . $err);
+
+                createLog('cURL error: ' . $err);
 
             } else {
 
-                debug( $httpcode );
-                debug( $depositResult );
+                // debug( $httpcode );
+                // debug( $depositResult );
 
                 switch ( $httpcode ) {
 
@@ -91,7 +96,11 @@ function depositMoney( $config ) {
 
                         // Check connection
                         if ( !$conn ) {
+
+                            createLog('MySQL Connection failure ' . mysqli_connect_error() );
+
                             die("Connection failed: " . mysqli_connect_error());
+
                         }
 
                         $date = date('Y-m-d');
@@ -100,9 +109,17 @@ function depositMoney( $config ) {
                         VALUES ('$date', '$tweetsLiked', '$newBalance')";
 
                         if ( mysqli_query( $conn, $sql ) ) {
-                            echo "New record created successfully";
+
+                            // echo "New record created successfully";
+
+                            createLog('Deposit successfully - you deposited ' . $depositAmnt);
+
                         } else {
-                            echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+
+                            // echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+
+                            createLog('MySQL failure: '. $sql . "<br>" . mysqli_error($conn));
+
                         }
 
                         mysqli_close($conn);
@@ -111,7 +128,9 @@ function depositMoney( $config ) {
 
                     default:
 
-                        debug('cURL for pot deposit failed ' . $httpcode);
+                        // debug('cURL for pot deposit failed ' . $httpcode);
+
+                        createLog('cURL for pot deposit failed ' . $httpcode);
 
                         break;
 
