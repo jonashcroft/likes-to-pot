@@ -54,6 +54,8 @@ function depositMoney( $config ) {
             $httpcode        = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $depositResult   = json_decode($depositResponse, true);
 
+            $err             = curl_errno($ch);
+
             curl_close($ch);
 
             if ( $err ) {
