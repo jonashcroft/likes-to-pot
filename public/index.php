@@ -11,7 +11,7 @@
             'dbHost'      => 'localhost',
             'dbUser'      => 'root',
             'dbPass'      => 'root',
-            'dbPass'      => 'scotchbox',
+            'dbName'      => 'scotchbox',
         ];
         return $config;
 
@@ -69,12 +69,23 @@
     }
 
 
+/*-------------
+Get count for the previous days likes
 
+getTodaysLikes will grab the total likes, so we can subtract 'today' from 'yesterday'
+to get the total for the current day.
+
+Ideally the Google Sheet would add the Timestamp for when the 'Like' was added
+and we'd just go 'IF ADD DATE == TODAY' - but IFTTT/Google seem to update ALL of the
+Timestamp cells to the current timestamp any time a new row is added.
+
+There is probably a way to 'only timestamp new rows' but this is already messy.
+--------------*/
 function getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) {
 
     $yesterdaysDate = date( 'Y-m-d' , strtotime('-1 days') );
 
-    $con            = mysqli_connect($dbName, $dbUser, $dbPass, $dbName);
+    $con            = mysqli_connect($dbHost, $dbUser, $dbPass, $dbName);
     $query          = "SELECT likeCount FROM transHistory WHERE depositDate = '$yesterdaysDate'";
     $result         = mysqli_query($con, $query);
 
@@ -89,13 +100,11 @@ function getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) {
     return $yesterdaysLikes;
 }
 
-debug( getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) );
-
 
 /*-------------
 Get todays 'liked' tweets from a Google Sheet populatd via IFTTT
 --------------*/
-function getTodaysLikes() {
+function getTodaysLikes( $dbHost, $dbUser, $dbPass, $dbName ) {
 
     $today         = date( 'Y-m-d' );
 
@@ -104,20 +113,27 @@ function getTodaysLikes() {
     $data          = json_decode($json, true);
 
     $allTimeLikes  = 0;
+
+    $yesterdaysLikes = getYesterdaysLikes( $dbHost, $dbUser, $dbPass, $dbName );
     $todaysLikes   = 0;
 
+    debug('Yesterdays Likes: ' . $yesterdaysLikes );
+
     foreach ( $data['feed']['entry'] as $item ) {
-
-        // debug($item);
-
-        $todaysLikes++;
+        $allTimeLikes++;
     }
+
+    debug('All Time Likes: ' . $allTimeLikes );
+
+    $todaysLikes = $allTimeLikes - $yesterdaysLikes;
+
+    debug('Todays Likes: ' . $todaysLikes );
 
     return $todaysLikes;
 
 }
 
-getTodaysLikes();
+getTodaysLikes( $dbHost, $dbUser, $dbPass, $dbName );
 
 function refreshMonzo( $monzoUrl, $clientId, $clientSecret, $refreshToken ) {
 
@@ -331,9 +347,9 @@ if ( !$authorised ) { ?>
             mysqli_close($con);
 
 
-            $tweetsLiked = getTodaysLikes();
+            $tweetsLiked = getTodaysLikes( $dbHost, $dbUser, $dbPass, $dbName );
 
-            debug($tweetsLiked);
+            // debug($tweetsLiked);
 
 
 
@@ -345,7 +361,7 @@ if ( !$authorised ) { ?>
             echo 'no deposit on this date';
 
             $tweetsLiked = 1;
-            $tweetsLiked = getTodaysLikes();
+            $tweetsLiked = getTodaysLikes( $dbHost, $dbUser, $dbPass, $dbName );
 
             $depositAmnt = 1 * $tweetsLiked;
 
