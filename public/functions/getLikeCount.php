@@ -16,7 +16,7 @@ function getYesterdaysLikes( $config ) {
 
     $yesterdaysDate = date( 'Y-m-d' , strtotime('-1 days') );
 
-    $con            = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+    $con            = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
     $query          = "SELECT likeCount FROM transHistory WHERE depositDate = '$yesterdaysDate'";
     $result         = mysqli_query($con, $query);
 
@@ -53,6 +53,8 @@ function getTodaysLikes( $config ) {
     }
 
     $todaysLikes = $allTimeLikes - $yesterdaysLikes;
+
+    createLog('Counted ' . $todaysLikes . ' likes for today.');
 
     // debug('All Time Likes: ' . $allTimeLikes );
     // debug('Yesterdays Likes: ' . $yesterdaysLikes );

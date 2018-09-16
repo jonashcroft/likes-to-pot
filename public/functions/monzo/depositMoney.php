@@ -7,10 +7,19 @@ function depositMoney( $config ) {
     // CHECK IF USER HASN'T ALREADY INSERTED TODAY
     $todaysDate = date('Y-m-d');
 
-    $con = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+    $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
     $query = "SELECT * FROM transHistory WHERE depositDate = '$todaysDate'";
     $result = mysqli_query($con, $query);
+
+    if ( $result = mysqli_query( $con, $query ) ) {
+
+        while ( $row = mysqli_fetch_row( $result ) ) {
+
+            debug($row);
+
+        }
+    }
 
     if ( mysqli_num_rows($result) > 0) {
 
@@ -92,7 +101,7 @@ function depositMoney( $config ) {
 
                         $newBalance = $depositResult['balance'];
 
-                        $conn = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+                        $conn = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
                         // Check connection
                         if ( !$conn ) {

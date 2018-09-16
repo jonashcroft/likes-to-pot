@@ -38,33 +38,32 @@ function initMonzoAuth( $config ) {
             print_r($response);
             echo '</pre>';
 
-            $conn = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+            $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
-            // Check connection
-            if ( !$conn ) {
-                die( 'Connection failed: ' . mysqli_connect_error() );
+            if ( !$con ) {
+                die("Connection failed: " . mysqli_connect_error());
             }
+            else {
 
-            $refreshToken = $response['refresh_token'];
-            $accessToken  = $response['access_token'];
-            $userId       = $response['user_id'];
+                $refreshToken = $response['refresh_token'];
+                $accessToken  = $response['access_token'];
+                $userId       = $response['user_id'];
 
-            $sql          = "UPDATE creds SET userID='$userId', refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1 ";
+                $sql          = "UPDATE creds SET userID='$userId', refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1 ";
 
-            // $sql = "INSERT INTO creds (userID, refreshToken, accessToken)
-            // -- VALUES ('$userId', '$refreshToken', '$accessToken')";
+                if ( mysqli_query( $con, $sql ) ) {
+                    echo 'Credentials saved successfully.';
 
-            if ( mysqli_query( $conn, $sql ) ) {
-                echo 'Credentials saved successfully.';
-
-                // Lol :/
-                echo '<script>location.href = ' . $config['redirectUri'] . ';</script>';
+                    // Lol :/
+                    echo '<script>location.href = ' . $config['redirectUri'] . ';</script>';
 
                 } else {
-                    echo 'Error: ' . $sql . '<br>' . mysqli_error($conn);
+                    echo 'Error: ' . $sql . '<br>' . mysqli_error($con);
                 }
 
-            mysqli_close( $conn );
+                mysqli_close($con);
+
+            }
 
         }
         else {
@@ -74,7 +73,7 @@ function initMonzoAuth( $config ) {
             echo '</pre>';
 
         }
-        curl_close ($ch);
+        curl_close($ch);
     }
 
 }

@@ -21,37 +21,85 @@
 
         if ( !empty( $accounts ) ) {
 
-            $conn = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+            debug($accounts);
 
-            // Check connection
-            if (!$conn) {
+            $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+
+            if ( !$con ) {
+                createLog('Could not connect to MySQL in getAccountDetails - ' . mysqli_connect_error() );
                 die("Connection failed: " . mysqli_connect_error());
             }
+            else {
 
-            foreach ( $accounts['accounts'] as $key => $account ) {
+                foreach ( $accounts['accounts'] as $key => $account ) {
+                    if ( $account['type'] == 'uk_retail' ) {
 
-                if ( $account['type'] == 'uk_retail' ) {
-
-                    $accountId = $account['id'];
-
-                    $sql = "UPDATE creds SET accountId='$accountId' WHERE id=1";
-
-                    if ( mysqli_query( $conn, $sql ) ) {
-
-                        echo "account ID created successfully";
-
-                        depositMoney( $config );
-
-                    } else {
-
-                        echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+                        $accountId = $account['id'];
+                        break;
 
                     }
-
                 }
+
+                $sql = "UPDATE creds SET accountId='$accountId' WHERE id=1";
+
+                if ( mysqli_query( $con, $sql ) ) {
+
+                    echo "account ID created successfully";
+
+                    createLog('Monzo account ID stored successfully.');
+
+                    depositMoney( $config );
+
+                } else {
+                    echo "Error: " . $sql . "<br>" . mysqli_error($con);
+
+                    createLog('Monzo account ID store error: ' . $sql . ' - ' . mysqli_error($con) );
+                }
+
             }
 
-            mysqli_close($conn);
+            mysqli_close($con);
+
+
+
+            // $con = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+
+            // // Check connection
+            // if ( !$con ) {
+            //     die("Connection failed: " . mysqli_connect_error());
+            // }
+            // else {
+
+            //     foreach ( $accounts['accounts'] as $key => $account ) {
+
+            //         if ( $account['type'] == 'uk_retail' ) {
+
+            //             $accountId = $account['id'];
+
+            //             $sql = "UPDATE creds SET accountId='$accountId' WHERE id=1";
+
+            //             if ( mysqli_query( $con, $sql ) ) {
+
+            //                 echo "account ID created successfully";
+
+            //                 createLog('Monzo account ID stored successfully.');
+
+            //                 depositMoney( $config );
+
+            //             } else {
+
+            //                 echo "Error: " . $sql . "<br>" . mysqli_error($con);
+
+            //                 createLog('Monzo account ID store error: ' . $sql . ' - ' mysqli_error($con) );
+
+            //             }
+
+            //         }
+            //     }
+
+            //     mysqli_close($con);
+
+            // }
 
         }
 

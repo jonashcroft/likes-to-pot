@@ -1,5 +1,7 @@
 <?php
 
+    $authorised  = false;
+
     include 'functions/createLog.php';
 
     include 'functions/main.php';
@@ -13,39 +15,37 @@
     include 'functions/monzo/refreshAccessToken.php';
     include 'functions/monzo/depositMoney.php';
 
-    $authorised  = false;
     $config      = configSettings();
 
+    if ( !empty( $config['accessToken'] ) ) {
 
-if ( !empty( $config['accessToken'] ) ) {
+        $authorised = true;
 
-    $authorised = true;
-
-    createLog('Authorised successfully');
-
-}
-
-
-if ( !$authorised ) {
-
-    initMonzoAuth( $config );
-
-}
-else {
-
-    if ( empty( $config['accountId'] )  ) {
-
-        getAccountDetails( $config );
+        createLog('Access Token found in db, moving on...');
 
     }
 
+
+    if ( !$authorised ) {
+
+        initMonzoAuth( $config );
+
+    }
     else {
 
-        depositMoney( $config );
+        if ( empty( $config['accountId'] )  ) {
+
+            getAccountDetails( $config );
+
+        }
+
+        else {
+
+            depositMoney( $config );
+
+        }
 
     }
-
-}
 
 
 ?>
