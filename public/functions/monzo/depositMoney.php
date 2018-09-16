@@ -16,7 +16,7 @@ function depositMoney( $config ) {
 
         while ( $row = mysqli_fetch_row( $result ) ) {
 
-            debug($row);
+            // debug($row);
 
         }
     }
@@ -74,18 +74,23 @@ function depositMoney( $config ) {
 
                 // debug("cURL Error #:" . $err);
 
-                createLog('cURL error: ' . $err);
+                createLog('Deposit: cURL error: ' . $err);
 
             } else {
 
-                // debug( $httpcode );
-                // debug( $depositResult );
+                // createLog('Deposit cURL success, moving on...' . $httpcode);
+
+
+                debug( $httpcode );
+                debug( $depositResult );
+
 
                 switch ( $httpcode ) {
 
                     // Reauthorize
                     case '401':
 
+                        createLog( 'Deposit cURL error: ' . $httpcode . ': ' . $depositResult['error_description'] );
                         refreshMonzo( $config );
 
                         break;
@@ -93,6 +98,7 @@ function depositMoney( $config ) {
                     // Reauthorize
                     case '400':
 
+                        createLog( 'Deposit cURL error: ' . $httpcode . ': ' . $depositResult['error_description'] );
                         refreshMonzo( $config );
 
                         break;
@@ -101,7 +107,7 @@ function depositMoney( $config ) {
 
                         $newBalance = $depositResult['balance'];
 
-                        $conn = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+                        $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
                         // Check connection
                         if ( !$conn ) {
@@ -117,7 +123,7 @@ function depositMoney( $config ) {
                         $sql = "INSERT INTO transHistory (depositDate, likeCount, newBalance)
                         VALUES ('$date', '$tweetsLiked', '$newBalance')";
 
-                        if ( mysqli_query( $conn, $sql ) ) {
+                        if ( mysqli_query( $con, $sql ) ) {
 
                             // echo "New record created successfully";
 
@@ -127,11 +133,11 @@ function depositMoney( $config ) {
 
                             // echo "Error: " . $sql . "<br>" . mysqli_error($conn);
 
-                            createLog('MySQL failure: '. $sql . "<br>" . mysqli_error($conn));
+                            createLog('MySQL failure: '. $sql . "<br>" . mysqli_error($con));
 
                         }
 
-                        mysqli_close($conn);
+                        mysqli_close($con);
 
                         break;
 

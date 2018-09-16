@@ -24,7 +24,8 @@ function refreshMonzo( $config ) {
     $server_output = curl_exec($ch);
     $response      = json_decode($server_output, true);
 
-    debug($response);
+    // debug('response from refresh:');
+    // debug($response);
 
     $to      = 'hello@jonashcroft.co.uk';
     $headers = 'From: hello@jonashcroft.co.uk' . "\r\n" .
@@ -33,10 +34,10 @@ function refreshMonzo( $config ) {
 
     if ( !empty( $response['refresh_token'] ) ) {
 
-        $conn = mysqli_connect( $config['dbName'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
+        $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
         // Check connection
-        if ( !$conn ) {
+        if ( !$con ) {
             die( 'Connection failed: ' . mysqli_connect_error() );
         }
 
@@ -45,7 +46,7 @@ function refreshMonzo( $config ) {
 
         $sql          = "UPDATE creds SET refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1";
 
-        if ( mysqli_query( $conn, $sql ) ) {
+        if ( mysqli_query( $con, $sql ) ) {
 
             // echo "tokens refreshed successfully.";
 
@@ -60,16 +61,16 @@ function refreshMonzo( $config ) {
 
         } else {
 
-            echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+            echo "Error: " . $sql . "<br>" . mysqli_error($con);
 
-            createLog( 'MySQL failure when attempting to refresh tokens..' . $sql . ' - ' . mysqli_error($conn) );
+            createLog( 'MySQL failure when attempting to refresh tokens..' . $sql . ' - ' . mysqli_error($con) );
 
             $subject = 'tokens did not refresh due to mysql';
-            $message = 'Error: ' . $sql . '<br>' . mysqli_error($conn);
+            $message = 'Error: ' . json_decode($sql, true) . '<br>' . mysqli_error($con);
 
         }
 
-        mysqli_close( $conn );
+        mysqli_close( $con );
 
     }
     else {
@@ -80,6 +81,7 @@ function refreshMonzo( $config ) {
         $message = 'Error: ' . $response;
 
     }
+
 
     mail($to, $subject, $message, $headers);
 

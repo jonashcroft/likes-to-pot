@@ -52,11 +52,13 @@ function initMonzoAuth( $config ) {
                 $sql          = "UPDATE creds SET userID='$userId', refreshToken='$refreshToken', accessToken='$accessToken' WHERE id=1 ";
 
                 if ( mysqli_query( $con, $sql ) ) {
+
                     echo 'Credentials saved successfully.';
-
                     // Lol :/
-                    echo '<script>location.href = ' . $config['redirectUri'] . ';</script>';
+                    ?>
+                    <script>location.href = '<?php $config['redirectUri']; ?>';</script>
 
+            <?php
                 } else {
                     echo 'Error: ' . $sql . '<br>' . mysqli_error($con);
                 }
