@@ -29,7 +29,7 @@ function depositMoney( $config ) {
 
         mysqli_close($con);
 
-        $tweetsLiked = getTodaysLikes( $config );
+        // $tweetsLiked = getTodaysLikes( $config );
 
     }
     else {
@@ -110,7 +110,7 @@ function depositMoney( $config ) {
                         $con = mysqli_connect( $config['dbHost'], $config['dbUser'], $config['dbPass'], $config['dbName'] );
 
                         // Check connection
-                        if ( !$conn ) {
+                        if ( !$con ) {
 
                             createLog('MySQL Connection failure ' . mysqli_connect_error() );
 
